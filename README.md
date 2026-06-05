@@ -101,6 +101,19 @@ PLA, PLA-CF, PETG, PETG-CF, ABS, ASA, PC, PC-CF, PA6, PA12, PA-CF, TPU 85A, TPU 
 
 Each material includes: service temperature, nozzle/bed temps, wall minimum, shrinkage, density, mechanical properties, printer requirements, and usage notes.
 
+## Web App
+
+A browser-based UI with chat, 3D viewer, and Docker Compose deployment is available in [`webapp/`](webapp/):
+
+```bash
+cd webapp
+cp .env.example .env
+docker compose up --build
+# → http://localhost:3000
+```
+
+See [webapp/README.md](webapp/README.md) and [webapp/docs/DEPLOY.md](webapp/docs/DEPLOY.md).
+
 ## Requirements
 
 - [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)
