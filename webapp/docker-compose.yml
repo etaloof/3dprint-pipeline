@@ -9,6 +9,8 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+    networks:
+      - app-net
 
   api:
     build:
