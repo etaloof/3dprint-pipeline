@@ -35,14 +35,21 @@ def renders_dir(session_id: str) -> Path:
 
 def resolve_pipeline_mode(session: Session) -> str:
     mode = (session.pipeline_mode or settings.pipeline_mode).lower()
-    if mode != "auto":
+    log.info("Resolving pipeline mode: %s", mode)
+    try:
+        if mode != "auto":
+            return mode
+        if session.onshape.document_id and session.onshape.workspace_id:
+            if claude_cli.claude_available():
+                mode = "onshape"
+                return mode
+        if cadquery_runner.cadquery_available():
+            mode = "cadquery"
+            return mode
+        mode = "demo"
         return mode
-    if session.onshape.document_id and session.onshape.workspace_id:
-        if claude_cli.claude_available():
-            return "onshape"
-    if cadquery_runner.cadquery_available():
-        return "cadquery"
-    return "demo"
+    finally:
+        log.info("Resolved pipeline mode: %s", mode)
 
 
 async def emit(job_id: str, event: PipelineEvent) -> None:
@@ -71,10 +78,13 @@ async def run_job(job_id: str) -> None:
 
     try:
         if mode == "onshape":
+            log.info("Running onshape pipeline")
             await _run_onshape_pipeline(job, session)
         elif mode == "cadquery":
+            log.info("Running cadquery pipeline")
             await _run_cadquery_pipeline(job, session)
         else:
+            log.info("Running demo pipeline")
             await _run_demo_pipeline(job, session)
 
         if await store.is_cancelled(job_id):
