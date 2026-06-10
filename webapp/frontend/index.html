@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Print Pipeline</title>
+    <link rel="stylesheet" href="/src/styles/main.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="app-header">
+        <div class="brand">
+          <h1>3D Print Pipeline</h1>
+          <p class="subtitle">AI-powered prompt → print-ready 3D models</p>
+        </div>
+        <div class="header-controls">
+          <label>
+            Material
+            <select id="material-select"></select>
+          </label>
+          <span id="session-badge" class="badge">No session</span>
+          <span id="pipeline-badge" class="badge muted">—</span>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="viewer-panel">
+          <div class="panel-header">
+            <h2>3D Preview</h2>
+            <div class="viewer-actions">
+              <button id="export-stl-btn" class="btn secondary" disabled>Download STL</button>
+              <button id="export-step-btn" class="btn secondary" disabled>Download STEP</button>
+              <a id="onshape-link" class="btn secondary hidden" target="_blank" rel="noopener">Open in Onshape</a>
+            </div>
+          </div>
+          <div id="viewer-container" class="viewer-container"></div>
+          <div id="render-gallery" class="render-gallery"></div>
+        </section>
+
+        <section class="chat-panel">
+          <div class="panel-header">
+            <h2>Design Assistant</h2>
+            <span id="job-status" class="job-status">Ready</span>
+          </div>
+          <div id="message-list" class="message-list"></div>
+          <form id="chat-form" class="chat-form">
+            <textarea
+              id="prompt-input"
+              rows="3"
+              placeholder="Describe your part… e.g. 80×60×40mm PETG enclosure with snap-fit lid"
+            ></textarea>
+            <div class="chat-actions">
+              <button type="submit" id="send-btn" class="btn primary">Send</button>
+              <button type="button" id="new-session-btn" class="btn secondary">New session</button>
+            </div>
+          </form>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <span id="health-status">Connecting…</span>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

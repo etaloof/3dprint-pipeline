@@ -1,0 +1,49 @@
+FROM python:3.12-slim AS base
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+# System deps: CadQuery/OCP runtime libs, Node for MCP servers, curl for Claude CLI
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl ca-certificates git \
+    libgl1 libglib2.0-0 libgomp1 libfreetype6 libfontconfig1 \
+    nodejs npm \
+    && rm -rf /var/lib/apt/lists/*
+
+# Claude Code CLI (optional — mount credentials at runtime)
+RUN curl -fsSL https://claude.ai/install.sh | bash || echo "Claude CLI install skipped"
+
+# uv / uvx for mcp-proxy
+RUN pip install --no-cache-dir uv && uv tool install mcp-proxy
+
+WORKDIR /app
+
+# MCP servers (CadQuery + OpenSCAD stdio bridges)
+COPY mcp-cadquery-server/package.json mcp-cadquery-server/package-lock.json* mcp-cadquery-server/
+COPY mcp-cadquery-server/tsconfig.json mcp-cadquery-server/
+COPY mcp-cadquery-server/src mcp-cadquery-server/src
+RUN cd mcp-cadquery-server && npm ci && npm run build
+
+COPY mcp-openscad-server/package.json mcp-openscad-server/package-lock.json* mcp-openscad-server/
+COPY mcp-openscad-server/tsconfig.json mcp-openscad-server/
+COPY mcp-openscad-server/src mcp-openscad-server/src
+RUN cd mcp-openscad-server && npm ci && npm run build || true
+
+# Python API
+COPY webapp/backend/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+COPY skills /app/skills
+COPY webapp/backend /app/backend
+
+ENV PYTHONPATH=/app/backend \
+    SKILLS_DIR=/app/skills \
+    DATA_DIR=/data
+
+RUN mkdir -p /data
+
+EXPOSE 8080
+WORKDIR /app/backend
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
